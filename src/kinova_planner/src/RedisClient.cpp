@@ -10,6 +10,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <list>
+
 void RedisClient::connect(const std::string& hostname, const int port,
 	                      const struct timeval& timeout) {
 	// Connect to new server
@@ -431,3 +433,30 @@ Eigen::MatrixXd RedisClient::decodeEigenMatrixJSON(const std::string& str) {
 	}
 	return decodeEigenMatrixWithDelimiters(str, ',', ']', ",[]", idx_row_end);
 }
+
+Eigen::VectorXd RedisClient::decodeCPPRedisVector(const std::string& str) {
+
+  std::list<double> temp_list; 
+
+  std::stringstream ss(str);
+
+  while (!ss.eof()) {
+      std::string val;
+      ss >> val;
+      temp_list.push_back(std::stod(val));
+  }
+
+  int size_list = temp_list.size(); 
+
+  Eigen::VectorXd vector_des = Eigen::VectorXd::Zero(size_list); 
+
+  for (int i = 0; i < size_list; ++i)
+  {
+    vector_des(i) = temp_list.front(); 
+    temp_list.pop_front(); 
+  }
+
+  return vector_des;
+
+}
+

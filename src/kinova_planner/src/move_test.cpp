@@ -80,6 +80,13 @@
 #include "std_msgs/String.h"
 
 
+#include "RedisClient.h"
+
+static RedisClient redis_client;
+
+const std::string INITIAL_POSE_KEY = "mmp::initial_pose"; 
+
+
 int main(int argc, char** argv)
 {
 
@@ -88,7 +95,18 @@ int main(int argc, char** argv)
   ros::NodeHandle node_handle;
   ros::AsyncSpinner spinner(1); 
   spinner.start(); 
-  ros::Rate loop_rate(10); 
+  ros::Rate loop_rate(10); // Hz
+
+  ros::Publisher traj_pub = node_handle.advertise<geometry_msgs::PoseArray>("trajectory_points", 1000);
+
+  /************************************ Initialize redis *************************************/
+  redis_client = RedisClient();
+  redis_client.connect("192.168.1.24", 6379);
+  redis_client.authenticate("bohg");
+
+  // Set initial value for initial pose as plaeholder 
+  std::string initial_joint_values_str = "0 0 0 -1.57 0 1.57 0";
+  redis_client.set(INITIAL_POSE_KEY, initial_joint_values_str); 
 
 
   /************************************ Initialize MoveIt ************************************/
@@ -116,104 +134,85 @@ int main(int argc, char** argv)
   // Pointer to the kinematic state of the robot 
   robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model));
 
-  // // Initial Values 
+  // Initial Values 
   int dof = 7;
-  // std::vector<double> initial_joint_values(dof, 0);
-  std::vector<double> initial_joint_values = {0,0,0,-1.57,0,1.57,0};
-  kinematic_state->setJointGroupPositions(joint_model_group, initial_joint_values); 
 
-  move_group.setStartState(*kinematic_state);
-
-
-
-  /******************************** Initialize visualization **********************************/
-  
-  // The package MoveItVisualTools provides many capabilities for visualizing objects, robots,
-  // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script.
-  // namespace rvt = rviz_visual_tools;
-  // moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
-  // visual_tools.deleteAllMarkers();
-
-  // // Remote control is an introspection tool that allows users to step through a high level script
-  // // via buttons and keyboard shortcuts in RViz
-  // visual_tools.loadRemoteControl();
-
-  // // RViz provides many types of markers, in this demo we will use text, cylinders, and spheres
-  // Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
-  // text_pose.translation().z() = 1.75;
-  // visual_tools.publishText(text_pose, "MoveGroupInterface Demo", rvt::WHITE, rvt::XLARGE);
-
-  // // Batch publishing is used to reduce the number of messages being sent to RViz for large visualizations
-  // visual_tools.trigger();
-
-  // visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
-
-  /********************************* Plan to a goal pose ************************************/
-
-  // We can plan a motion for this group to a desired pose for the end-effector.
-  geometry_msgs::Pose target_pose1;
-  target_pose1.orientation.w = 0.0;
-  target_pose1.position.x = 0.28;
-  target_pose1.position.y = -0.2;
-  target_pose1.position.z = 0.1;
-  move_group.setPoseTarget(target_pose1);
-
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-
-  bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  // /******************************** Get trajectory points ************************************/
-  moveit_msgs::RobotTrajectory final_trajectory = my_plan.trajectory_; 
-  
-  // Convert trajectory into a series of RobotStates
-  // Copy the vector of RobotStates to a RobotTrajectory
-  robot_trajectory::RobotTrajectoryPtr robot_trajectory(
-      new robot_trajectory::RobotTrajectory(robot_model, joint_model_group->getName()));
-
-  robot_trajectory->setRobotTrajectoryMsg(*kinematic_state, final_trajectory);
-
-  std::size_t num_waypoints = robot_trajectory->getWayPointCount(); 
-
-  ROS_INFO_STREAM("num waypoints: " << num_waypoints); 
-
-  // Joint Values 
-  // int dof = 7;
-  std::vector<double> joint_values(dof, 0);
-
-  int var_offset = 7;  
-
-  Eigen::MatrixXd full_traj = Eigen::MatrixXd::Zero(num_waypoints,3); 
-
-  for (int j = 0; j < num_waypoints; j++)
-  {
-
-    const robot_state::RobotState& rs = robot_trajectory->getWayPoint(j); 
-    const std::vector<std::string>& var_names = rs.getVariableNames(); 
-
-    // Get joint values 
-    for (int i = 0; i < dof; i++)
-    {
-      joint_values[i] = rs.getVariablePosition(var_names.at(i+var_offset)); 
-    } 
-
-    // Forward kinematics 
-    kinematic_state->setJointGroupPositions(joint_model_group, joint_values); 
-    const Eigen::Affine3d& end_effector_state = kinematic_state->getGlobalLinkTransform("panda_link8"); 
-    // ROS_INFO_STREAM("Translation: \n" << end_effector_state.translation() << "\n"); 
-    // ROS_INFO_STREAM("Rotation: \n" << end_effector_state.rotation() << "\n"); 
-
-    full_traj.row(j) = end_effector_state.translation(); 
-
-  }
-
-
-  ROS_INFO_STREAM("Full traj: " << "\n" << full_traj); 
-
-
-  // /**************************** Publish trajectory points **************************************/
-  ros::Publisher traj_pub = node_handle.advertise<geometry_msgs::PoseArray>("trajectory_points", 1000); 
+ 
   while(ros::ok())
   {
+    std::string initial_state = redis_client.get(INITIAL_POSE_KEY); 
+
+    Eigen::VectorXd initial_joint_values = redis_client.decodeCPPRedisVector(initial_state);
+
+    ROS_INFO_STREAM("joint values: " << initial_joint_values);
+
+
+    kinematic_state->setJointGroupPositions(joint_model_group, initial_joint_values); 
+    move_group.setStartState(*kinematic_state);
+
+
+    /********************************* Plan to a goal pose ************************************/
+
+    // We can plan a motion for this group to a desired pose for the end-effector.
+    geometry_msgs::Pose target_pose1;
+    target_pose1.orientation.w = 1.0;
+    target_pose1.position.x = 0.5;
+    target_pose1.position.y = 0;
+    target_pose1.position.z = 0.5;
+    move_group.setPoseTarget(target_pose1);
+
+    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+    bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+    // /******************************** Get trajectory points ************************************/
+    moveit_msgs::RobotTrajectory final_trajectory = my_plan.trajectory_; 
+    
+    // Convert trajectory into a series of RobotStates
+    // Copy the vector of RobotStates to a RobotTrajectory
+    robot_trajectory::RobotTrajectoryPtr robot_trajectory(
+        new robot_trajectory::RobotTrajectory(robot_model, joint_model_group->getName()));
+
+    robot_trajectory->setRobotTrajectoryMsg(*kinematic_state, final_trajectory);
+
+    std::size_t num_waypoints = robot_trajectory->getWayPointCount(); 
+
+    ROS_INFO_STREAM("num waypoints: " << num_waypoints); 
+
+
+    std::vector<double> joint_values(dof, 0);
+
+    int var_offset = 7;  
+
+    Eigen::MatrixXd full_traj = Eigen::MatrixXd::Zero(num_waypoints,3); 
+
+    for (int j = 0; j < num_waypoints; j++)
+    {
+
+      const robot_state::RobotState& rs = robot_trajectory->getWayPoint(j); 
+      const std::vector<std::string>& var_names = rs.getVariableNames(); 
+
+      // Get joint values 
+      for (int i = 0; i < dof; i++)
+      {
+        joint_values[i] = rs.getVariablePosition(var_names.at(i+var_offset)); 
+      } 
+
+      // Forward kinematics 
+      kinematic_state->setJointGroupPositions(joint_model_group, joint_values); 
+      const Eigen::Affine3d& end_effector_state = kinematic_state->getGlobalLinkTransform("panda_link8"); 
+      // ROS_INFO_STREAM("Translation: \n" << end_effector_state.translation() << "\n"); 
+      // ROS_INFO_STREAM("Rotation: \n" << end_effector_state.rotation() << "\n"); 
+
+      full_traj.row(j) = end_effector_state.translation(); 
+
+    }
+
+
+    /**************************** Publish trajectory points **************************************/
+
+    ROS_INFO_STREAM("Full traj: " << "\n" << full_traj); 
+
     geometry_msgs::PoseArray poses;
     poses.header.stamp = ros::Time::now(); 
     for (int j = 0; j < num_waypoints; j++)
@@ -230,15 +229,7 @@ int main(int argc, char** argv)
     loop_rate.sleep(); 
   }
 
-  /********************************** Visualize Trajectory *************************************/
 
-  // We can also visualize the plan as a line with markers in RViz.
-  // ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
-  // visual_tools.publishAxisLabeled(target_pose1, "pose1");
-  // visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
-  // visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  // visual_tools.trigger();
-  // visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
 
   ros::waitForShutdown();
   return 0;

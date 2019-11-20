@@ -87,11 +87,7 @@ int main(int argc, char** argv)
   redis_client.connect("192.168.1.24", 6379);
   redis_client.authenticate("bohg");
 
-  redis_client.set(TRAJECTORY_KEY, "0"); 
-
-  
   ros::Subscriber sub = node_handle.subscribe("trajectory_points", 1000, pathCallback); 
-
 
   ros::waitForShutdown(); 
   return 0;

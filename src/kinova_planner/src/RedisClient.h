@@ -247,6 +247,7 @@ public:
 #endif  // JSON_DEFAULT
 	}
 
+
 	/**
  	 * Decode Eigen::MatrixXd from JSON or space-delimited string.
 	 *
@@ -271,6 +272,8 @@ public:
 	static Eigen::MatrixXd decodeEigenMatrix(const std::string& str) {
 		return (str[0] == '[') ? decodeEigenMatrixJSON(str) : decodeEigenMatrixString(str);
 	}
+
+	static Eigen::VectorXd decodeCPPRedisVector(const std::string& str);
 
 	/**
 	 * Get Eigen::MatrixXd from Redis.
