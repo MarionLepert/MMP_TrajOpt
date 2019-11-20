@@ -42,6 +42,13 @@
 
 #include "std_msgs/String.h"
 
+#include "RedisClient.h"
+
+static RedisClient redis_client;
+
+const std::string TRAJECTORY_KEY = "mmp::trajectory"; 
+
+
 void pathCallback(const geometry_msgs::PoseArray& msg)
 {
 	ROS_INFO("Message!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -60,18 +67,29 @@ void pathCallback(const geometry_msgs::PoseArray& msg)
     full_traj(j,2) = pose.position.z; 
 	}
 
-  ROS_INFO_STREAM("Full traj: " << full_traj); 
+  redis_client.setEigenMatrixJSON(TRAJECTORY_KEY, full_traj);
+
+  // ROS_INFO_STREAM("Full traj: " << full_traj); 
 
 }
 
 
 int main(int argc, char** argv)
 {
+  /************************************** Initialize ROS *************************************/
   ros::init(argc, argv, "redis_listener");
   ros::NodeHandle node_handle;
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
+  /************************************ Initialize redis *************************************/
+  redis_client = RedisClient();
+  redis_client.connect("192.168.1.24", 6379);
+  redis_client.authenticate("bohg");
+
+  redis_client.set(TRAJECTORY_KEY, "0"); 
+
+  
   ros::Subscriber sub = node_handle.subscribe("trajectory_points", 1000, pathCallback); 
 
 

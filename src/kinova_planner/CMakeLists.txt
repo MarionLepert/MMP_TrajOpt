@@ -25,6 +25,10 @@ find_package(catkin REQUIRED
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread)
 
+# - hiredis
+find_library(HIREDIS_LIBRARY hiredis)
+
+
 set(THIS_PACKAGE_INCLUDE_DIRS
   doc/interactivity/include
 )
@@ -48,12 +52,12 @@ catkin_package(
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
 
-add_executable(move_test src/move_test.cpp)
-target_link_libraries(move_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_executable(move_test src/move_test.cpp src/RedisClient.cpp)
+target_link_libraries(move_test ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${HIREDIS_LIBRARY})
 install(TARGETS move_test DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(redis_communication src/redis_communication.cpp)
-target_link_libraries(redis_communication ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_executable(redis_communication src/redis_communication.cpp src/RedisClient.cpp)
+target_link_libraries(redis_communication ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${HIREDIS_LIBRARY})
 install(TARGETS redis_communication DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

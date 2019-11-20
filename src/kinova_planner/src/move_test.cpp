@@ -47,6 +47,7 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 // MoveIt Messages
 #include <moveit_msgs/CollisionObject.h>
@@ -114,27 +115,36 @@ int main(int argc, char** argv)
 
   // Pointer to the kinematic state of the robot 
   robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model));
-  kinematic_state = move_group.getCurrentState(); 
+
+  // // Initial Values 
+  int dof = 7;
+  // std::vector<double> initial_joint_values(dof, 0);
+  std::vector<double> initial_joint_values = {0,0,0,-1.57,0,1.57,0};
+  kinematic_state->setJointGroupPositions(joint_model_group, initial_joint_values); 
+
+  move_group.setStartState(*kinematic_state);
+
+
 
   /******************************** Initialize visualization **********************************/
   
   // The package MoveItVisualTools provides many capabilities for visualizing objects, robots,
   // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script.
-  namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
-  visual_tools.deleteAllMarkers();
+  // namespace rvt = rviz_visual_tools;
+  // moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
+  // visual_tools.deleteAllMarkers();
 
-  // Remote control is an introspection tool that allows users to step through a high level script
-  // via buttons and keyboard shortcuts in RViz
-  visual_tools.loadRemoteControl();
+  // // Remote control is an introspection tool that allows users to step through a high level script
+  // // via buttons and keyboard shortcuts in RViz
+  // visual_tools.loadRemoteControl();
 
-  // RViz provides many types of markers, in this demo we will use text, cylinders, and spheres
-  Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
-  text_pose.translation().z() = 1.75;
-  visual_tools.publishText(text_pose, "MoveGroupInterface Demo", rvt::WHITE, rvt::XLARGE);
+  // // RViz provides many types of markers, in this demo we will use text, cylinders, and spheres
+  // Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
+  // text_pose.translation().z() = 1.75;
+  // visual_tools.publishText(text_pose, "MoveGroupInterface Demo", rvt::WHITE, rvt::XLARGE);
 
-  // Batch publishing is used to reduce the number of messages being sent to RViz for large visualizations
-  visual_tools.trigger();
+  // // Batch publishing is used to reduce the number of messages being sent to RViz for large visualizations
+  // visual_tools.trigger();
 
   // visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
 
@@ -152,7 +162,7 @@ int main(int argc, char** argv)
 
   bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-  /******************************** Get trajectory points ************************************/
+  // /******************************** Get trajectory points ************************************/
   moveit_msgs::RobotTrajectory final_trajectory = my_plan.trajectory_; 
   
   // Convert trajectory into a series of RobotStates
@@ -167,7 +177,7 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("num waypoints: " << num_waypoints); 
 
   // Joint Values 
-  int dof = 7;
+  // int dof = 7;
   std::vector<double> joint_values(dof, 0);
 
   int var_offset = 7;  
@@ -200,7 +210,7 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Full traj: " << "\n" << full_traj); 
 
 
-  /**************************** Publish trajectory points **************************************/
+  // /**************************** Publish trajectory points **************************************/
   ros::Publisher traj_pub = node_handle.advertise<geometry_msgs::PoseArray>("trajectory_points", 1000); 
   while(ros::ok())
   {
