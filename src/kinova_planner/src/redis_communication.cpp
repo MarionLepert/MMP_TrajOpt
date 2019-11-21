@@ -77,14 +77,16 @@ void pathCallback(const geometry_msgs::PoseArray& msg)
 int main(int argc, char** argv)
 {
   /************************************** Initialize ROS *************************************/
-  ros::init(argc, argv, "redis_listener");
+  ros::init(argc, argv, "redis_talker");
   ros::NodeHandle node_handle;
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
+  ROS_INFO_STREAM("Marion"); 
+
   /************************************ Initialize redis *************************************/
   redis_client = RedisClient();
-  redis_client.connect("192.168.1.24", 6379);
+  redis_client.connect("172.24.69.155", 6379);
   redis_client.authenticate("bohg");
 
   ros::Subscriber sub = node_handle.subscribe("trajectory_points", 1000, pathCallback); 

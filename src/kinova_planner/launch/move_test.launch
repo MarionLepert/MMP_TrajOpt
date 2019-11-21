@@ -12,7 +12,7 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
  -->
-  <node name="redis_listener" pkg="kinova_planner" type="redis_communication" respawn="false" output="screen"> </node>
+  <node name="redis_talker" pkg="kinova_planner" type="redis_communication" respawn="false" output="screen"> </node>
   <node name="move_test" pkg="kinova_planner" type="move_test" respawn="false" output="screen"> </node>
 
 
