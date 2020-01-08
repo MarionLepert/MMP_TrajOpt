@@ -58,10 +58,17 @@ int main(int argc, char** argv)
   /************************************ Initialize redis *************************************/
   redis_client = RedisClient();
   redis_client.connect("172.24.69.155", 6379);
-  redis_client.authenticate("bohg");
+  // redis_client.connect("192.168.1.24", 6379);
+  // redis_client.authenticate("bohg");
 
-  // Set initial value for initial pose as plaeholder 
-  std::string initial_joint_values_str = "0 0 0 -1.57 0 1.57 0";
+  // Set initial value for initial pose as placeholder 
+#ifdef KINOVA
+  std::string initial_joint_values_str = "0 0 0 1.57 0 0 0";
+#else
+  std::string initial_joint_values_str = "-0.52 -0.261 -0.261 -1.83 0.0 1.57 0.785";
+  // std::string initial_joint_values_str = "-0.52 1.5 -0.261 0 0.0 1.57 0.785";
+#endif 
+
   redis_client.set(INITIAL_POSE_KEY, initial_joint_values_str); 
 
   std::string initial_goal_state_str = "-0.5 0 0.5"; 
@@ -148,7 +155,6 @@ int main(int argc, char** argv)
     std::size_t num_waypoints = robot_trajectory->getWayPointCount(); 
 
     ROS_INFO_STREAM("num waypoints: " << num_waypoints); 
-
 
     std::vector<double> joint_values(dof, 0);
 

@@ -1,5 +1,7 @@
 <launch>
 
+  <arg name="planner" default="ompl" />
+
   <!-- By default, we do not start a database (it can be large) -->
   <arg name="db" default="true" />
   <!-- Allow user to specify database location -->
@@ -40,6 +42,7 @@
 
   <!-- Run the main MoveIt! executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find gen3_move_it_config)/launch/move_group.launch">
+    <arg name="planner" value="$(arg planner)" />
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>

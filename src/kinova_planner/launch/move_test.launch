@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- <arg name="planner" default="ompl" /> -->
+  <arg name="planner" default="ompl" />
     <!-- By default, we are not in debug mode -->
   <!-- <arg name="debug" default="false" /> -->
 
