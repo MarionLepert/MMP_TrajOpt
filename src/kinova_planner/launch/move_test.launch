@@ -12,8 +12,9 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
  -->
+  <arg name="active_comp" default="0"/>
   <node name="redis_talker" pkg="kinova_planner" type="redis_communication" respawn="false" output="screen"> </node>
-  <node name="move_test" pkg="kinova_planner" type="move_test" respawn="false" output="screen"> </node>
+  <node name="move_test" pkg="kinova_planner" type="move_test" respawn="false" output="screen" args="$(arg active_comp)"> </node>
 
 
 </launch>

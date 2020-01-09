@@ -31,6 +31,7 @@
 #include <vector>
 #include <set>
 #include <limits>
+#include <sstream>
 
 // Redis
 #include "RedisClient.h"
@@ -38,14 +39,13 @@
 static RedisClient redis_client;
 
 const std::string INITIAL_POSE_KEY = "mmp::initial_pose"; 
-const std::string GOAL_STATE_KEY = "mmp::goal_state";
+const std::string GOAL_STATE_KEY   = "mmp::goal_state";
 
 #define KINOVA
 
 
 int main(int argc, char** argv)
 {
-
   /************************************** Initialize ROS *************************************/
   ros::init(argc, argv, "move_test");
   ros::NodeHandle node_handle;
@@ -55,11 +55,45 @@ int main(int argc, char** argv)
 
   ros::Publisher traj_pub = node_handle.advertise<geometry_msgs::PoseArray>("trajectory_points", 1000);
 
+  /***************************** Read command line arguments *********************************/
+  std::string param; 
+  node_handle.getParam("active_comp", param);
+
+  std::istringstream ss(argv[1]); 
+  int active_comp; 
+  try {
+    if (!(ss >> active_comp)) {
+      throw std::runtime_error(std::string("ERROR: Invalid Number: ") + std::string(argv[1])); 
+    } else if (!ss.eof()) {
+      throw std::runtime_error(std::string("ERROR: Trailing characters after number")); 
+    } else if ((active_comp < 0) || (active_comp > 3)) {
+      throw std::runtime_error(std::string("ERROR: Input number out of range: ") + std::string(argv[1]));
+    }
+  } catch(const std::runtime_error& e) {
+    std::cerr << e.what() << std::endl; 
+    exit(0); 
+  }
+
+  std::string ip_address; 
+  switch(active_comp)
+  {
+    case 0: 
+      // ip_address = "172.24.69.155"; 
+      ip_address = "192.168.1.25"; 
+      break; 
+    case 1: 
+      ip_address = "172.24.69.149"; 
+      break; 
+    case 2: 
+      ip_address = "172.24.69.150"; 
+    case 3: 
+      ip_address = "172.24.69.151"; 
+  }
+
   /************************************ Initialize redis *************************************/
   redis_client = RedisClient();
-  redis_client.connect("172.24.69.155", 6379);
-  // redis_client.connect("192.168.1.24", 6379);
-  // redis_client.authenticate("bohg");
+  redis_client.connect(ip_address, 6379);
+  redis_client.authenticate("bohg");
 
   // Set initial value for initial pose as placeholder 
 #ifdef KINOVA
