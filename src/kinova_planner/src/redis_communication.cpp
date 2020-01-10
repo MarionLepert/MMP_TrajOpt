@@ -46,7 +46,8 @@
 
 static RedisClient redis_client;
 
-const std::string TRAJECTORY_KEY = "mmp::trajectory"; 
+const std::string FULL_TRAJ_POS_KEY = "mmp::full_traj_x"; 
+const std::string FULL_TRAJ_ORI_KEY = "mmp::full_traj_ori"; 
 
 
 void pathCallback(const geometry_msgs::PoseArray& msg)
@@ -57,17 +58,24 @@ void pathCallback(const geometry_msgs::PoseArray& msg)
 
 	int num_waypoints = (msg.poses).size();
 
-  Eigen::MatrixXd full_traj = Eigen::MatrixXd::Zero(num_waypoints,3); 
+  Eigen::MatrixXd full_traj_pos = Eigen::MatrixXd::Zero(num_waypoints,3); 
+  Eigen::MatrixXd full_traj_ori = Eigen::MatrixXd::Zero(num_waypoints,4); 
 
 	for(int j = 0; j < num_waypoints; j++)
 	{
 		geometry_msgs::Pose pose = msg.poses[j]; 
-		full_traj(j,0) = pose.position.x; 
-    full_traj(j,1) = pose.position.y; 
-    full_traj(j,2) = pose.position.z; 
+		full_traj_pos(j,0) = pose.position.x; 
+    full_traj_pos(j,1) = pose.position.y; 
+    full_traj_pos(j,2) = pose.position.z; 
+
+    full_traj_ori(j,0) = pose.orientation.w; 
+    full_traj_ori(j,1) = pose.orientation.x; 
+    full_traj_ori(j,2) = pose.orientation.y;
+    full_traj_ori(j,3) = pose.orientation.z; 
 	}
 
-  redis_client.setEigenMatrixJSON(TRAJECTORY_KEY, full_traj);
+  redis_client.setEigenMatrixJSON(FULL_TRAJ_POS_KEY, full_traj_pos);
+  redis_client.setEigenMatrixJSON(FULL_TRAJ_ORI_KEY, full_traj_ori);
 
   // ROS_INFO_STREAM("Full traj: " << full_traj); 
 
@@ -90,11 +98,11 @@ int main(int argc, char** argv)
   int active_comp; 
   try {
     if (!(ss >> active_comp)) {
-      throw std::runtime_error(std::string("ERROR: Invalid Number: ") + std::string(argv[1])); 
+      throw std::runtime_error(std::string("ERROR (Redis comm): Invalid Number: ") + std::string(argv[1])); 
     } else if (!ss.eof()) {
-      throw std::runtime_error(std::string("ERROR: Trailing characters after number")); 
+      throw std::runtime_error(std::string("ERROR (Redis comm): Trailing characters after number")); 
     } else if ((active_comp < 0) || (active_comp > 3)) {
-      throw std::runtime_error(std::string("ERROR: Input number out of range: ") + std::string(argv[1]));
+      throw std::runtime_error(std::string("ERROR (Redis comm): Input number out of range: ") + std::string(argv[1]));
     }
   } catch(const std::runtime_error& e) {
     std::cerr << e.what() << std::endl; 

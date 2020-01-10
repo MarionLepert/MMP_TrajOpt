@@ -5,14 +5,13 @@
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="robot_description"/>
 
-  <arg name="sys_mode" default="mmp"/>
+  <arg name="sys_mode"/>
 
   <!-- Load universal robot description format (URDF) -->
   <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="xacro --inorder arm:=$(arg sys_mode) '$(find kortex_description)/robots/gen3.xacro'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <!-- <param name="$(arg robot_description)_semantic" textfile="$(find gen3_move_it_config)/config/$(arg sys_mode).srdf" /> -->
-  <param name="$(arg robot_description)_semantic" textfile="$(find gen3_move_it_config)/config/mmp.srdf" />
+  <param name="$(arg robot_description)_semantic" textfile="$(find gen3_move_it_config)/config/$(arg sys_mode).srdf"/>
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">

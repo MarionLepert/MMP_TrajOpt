@@ -1,8 +1,14 @@
 <launch>
 
+  <arg name="sys_mode"/>
+
+
   <arg name="planner" default="ompl" />
 
-  <include file="$(find gen3_move_it_config)/launch/planning_context.launch" />
+
+  <include file="$(find gen3_move_it_config)/launch/planning_context.launch">
+    <arg name="sys_mode" value="$(arg sys_mode)"/>
+  </include>
 
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />

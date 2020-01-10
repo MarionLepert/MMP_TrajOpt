@@ -10,6 +10,8 @@
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
+  <arg name="sys_mode" default="gen3"/>
+
   <!--
   By default, hide joint_state_publisher's GUI
 
@@ -20,12 +22,10 @@
   -->
   <arg name="use_gui" default="false" />
 
-  <arg name="sys_mode_input" default="mmp"/>
-
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find gen3_move_it_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
-    <arg name="sys_mode" value="$(arg sys_mode_input)"/>
+    <arg name="sys_mode" value="$(arg sys_mode)"/>
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->
@@ -50,6 +50,7 @@
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="sys_mode" value="$(arg sys_mode)"/>
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->

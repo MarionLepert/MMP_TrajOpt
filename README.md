@@ -38,10 +38,25 @@ source devel/setup.bash
 
 Launch the move_it launch file for the kinova arm in one terminal window 
 ``` 
-roslaunch kinova_planner move_test.launch
+roslaunch gen3_move_it_config demo.launch sys_mode:=mmp
 ```
 
 In a second terminal window, launch the move_test launch file 
 ```
-roslaunch kinova_planner move_test.launch
+roslaunch kinova_planner move_test.launch args:="0 mmp"
 ``` 
+
+Use the following arg value to use the entire mobile manipulation platform 
+```
+sys_mode:=mmp
+args:="0 mmp"
+```
+
+or use the following arg value to use only the kinova arm 
+```
+sys_mode:=gen3
+args:="0 gen3"
+```
+
+
+

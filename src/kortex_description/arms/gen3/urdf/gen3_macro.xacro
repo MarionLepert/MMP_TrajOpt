@@ -196,9 +196,7 @@
     <link name="end_effector_link" />
 
 
-    <joint
-      name="joint_1"
-      type="continuous">
+    <joint name="joint_1" type="continuous">
       <origin xyz="0 0 0.15643" rpy="3.1416 2.7629E-18 -4.9305E-36" />
       <parent
         link="base_link" />
@@ -211,9 +209,7 @@
         velocity="0.8727" />
     </joint>
 
-    <joint
-      name="joint_2"
-      type="revolute">
+    <joint name="joint_2" type="revolute">
       <origin xyz="0 0.005375 -0.12838" rpy="1.5708 2.1343E-17 -1.1102E-16" />
       <parent
         link="shoulder_link" />
@@ -226,9 +222,7 @@
 
     </joint>
 
-    <joint
-      name="joint_3"
-      type="continuous">
+    <joint name="joint_3" type="continuous">
       <origin xyz="0 -0.21038 -0.006375" rpy="-1.5708 1.2326E-32 -2.9122E-16" />
       <parent
         link="half_arm_1_link" />
@@ -241,9 +235,7 @@
         velocity="0.8727" />
     </joint>
 
-    <joint
-      name="joint_4"
-      type="revolute">
+    <joint name="joint_4" type="revolute">
       <origin xyz="0 0.006375 -0.21038" rpy="1.5708 -6.6954E-17 -1.6653E-16" />
       <parent
         link="half_arm_2_link" />
@@ -256,9 +248,7 @@
     </joint>
 
 
-    <joint
-      name="joint_5"
-      type="continuous">
+    <joint name="joint_5" type="continuous">
       <origin xyz="0 -0.20843 -0.006375" rpy="-1.5708 2.2204E-16 -6.373E-17" />
       <parent
         link="forearm_link" />
@@ -272,9 +262,7 @@
     </joint>
 
 
-    <joint
-      name="joint_6"
-      type="revolute">
+    <joint name="joint_6" type="revolute">
       <origin xyz="0 0.00017505 -0.10593" rpy="1.5708 9.2076E-28 -8.2157E-15" />
       <parent
         link="spherical_wrist_1_link" />
@@ -287,9 +275,7 @@
     </joint>
 
 
-    <joint
-      name="joint_7"
-      type="continuous">
+    <joint name="joint_7" type="continuous">
       <origin xyz="0 -0.10593 -0.00017505" rpy="-1.5708 -5.5511E-17 9.6396E-17" />
       <parent
         link="spherical_wrist_2_link" />
@@ -303,10 +289,8 @@
     </joint>
 
 
-    <joint
-      name="end_effector"
-      type="fixed">
-      <origin xyz="0 0 -0.0615250000000001" rpy="3.14159265358979 1.09937075168372E-32 0" />
+    <joint name="end_effector" type="fixed">
+      <origin xyz="0 0 -0.0615250000000001" rpy="0 0 0" />
       <parent
         link="bracelet_link" />
       <child
