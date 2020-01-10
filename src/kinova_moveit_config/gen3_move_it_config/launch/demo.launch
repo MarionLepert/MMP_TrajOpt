@@ -20,9 +20,12 @@
   -->
   <arg name="use_gui" default="false" />
 
+  <arg name="sys_mode_input" default="mmp"/>
+
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find gen3_move_it_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
+    <arg name="sys_mode" value="$(arg sys_mode_input)"/>
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->

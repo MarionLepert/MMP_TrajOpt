@@ -42,7 +42,7 @@ const std::string INITIAL_POSE_KEY = "mmp::initial_pose";
 const std::string GOAL_STATE_KEY   = "mmp::goal_state";
 
 #define KINOVA
-
+#define MMP
 
 int main(int argc, char** argv)
 {
@@ -97,7 +97,11 @@ int main(int argc, char** argv)
 
   // Set initial value for initial pose as placeholder 
 #ifdef KINOVA
-  std::string initial_joint_values_str = "0 0 0 1.57 0 0 0";
+  #ifdef MMP
+    std::string initial_joint_values_str = "0 0 0 1.57 0 0 0";
+  #else 
+    std::string initial_joint_values_str = "0 0 0 0 0 0 1.57 0 0 0";
+  #endif
 #else
   std::string initial_joint_values_str = "-0.52 -0.261 -0.261 -1.83 0.0 1.57 0.785";
   // std::string initial_joint_values_str = "-0.52 1.5 -0.261 0 0.0 1.57 0.785";
@@ -139,7 +143,11 @@ int main(int argc, char** argv)
   robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model));
 
   // Initial Values 
+#ifdef MMP
   int dof = 7;
+#else 
+  int dof = 10; 
+#endif 
 
   /************************************** Begin loop *****************************************/
 
